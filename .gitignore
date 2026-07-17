@@ -1,0 +1,53 @@
+# ==========================================
+# Dependencies (Global & Subfolders)
+# ==========================================
+node_modules/
+**/node_modules/
+
+# ==========================================
+# Environment Variables & Secrets (CRITICAL)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.key
+
+# ==========================================
+# Build & Production Outputs
+# ==========================================
+# (React/Vite usually builds to 'dist', Express might use 'dist' or 'build')
+dist/
+dist-ssr/
+build/
+out/
+bin/
+obj/
+
+# ==========================================
+# Logs & Debugging
+# ==========================================
+*.log
+logs/
+npm-debug.log*
+
+# ==========================================
+# Operating System & IDEs
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# ==========================================
+# TypeScript & Cache
+# ==========================================
+*.tsbuildinfo
+
+# ==========================================
+# Databases (Express local DBs)
+# ==========================================
+*.db
+*.sqlite
