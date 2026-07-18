@@ -25,6 +25,8 @@ export const login = async (req, res) => {
         const derivedKey = crypto.pbkdf2Sync(password, user.salt, 100000, 64, 'sha512');
         const calculatedHash = derivedKey.toString('hex');
 
+        console.log(calculatedHash)
+
         if (calculatedHash === user.password_hash) {
             db.run("UPDATE users SET failed_attempts = 0 WHERE id = ?", [user.id]);
 

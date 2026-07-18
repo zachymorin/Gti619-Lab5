@@ -6,9 +6,9 @@ import { sessionAuth, requireRole } from '../middlewares/authMiddleware.js';
 
 export const router = express.Router();
 
-router.post('/login', login);
-router.post('/logout', logout);
-router.post('/users/change-password', sessionAuth, changePassword); 
+router.post('/auth/login', login);
+router.post('/auth/logout', logout);
+router.post('/auth/change-password', sessionAuth, changePassword); 
 
 router.get('/clients/residential', 
     sessionAuth, 
