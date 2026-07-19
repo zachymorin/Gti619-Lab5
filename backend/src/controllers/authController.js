@@ -28,16 +28,8 @@ export const login = async (req, res) => {
 			});
 		}
 
-		const salt = crypto.randomBytes(16).toString("hex");
-		const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
-
-		console.log("Salt: " + salt);
-		console.log("Hash: " + hash);
-
 		const derivedKey = crypto.pbkdf2Sync(password, user.salt, 100000, 64, "sha512");
 		const calculatedHash = derivedKey.toString("hex");
-
-		console.log(calculatedHash);
 
 		if (calculatedHash === user.password_hash) {
 			db.run("UPDATE users SET failed_attempts = 0 WHERE id = ?", [user.id]);

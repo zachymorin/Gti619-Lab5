@@ -31,5 +31,5 @@ INSERT OR IGNORE INTO users (id, username, password_hash, salt, role) VALUES
   'User2', 
   'c6c0768fd25d0398bb20fdabbb7684cf425a9ae98fbd8cef8a9057554c69cd74b1c0d8c6992b8689a0960f84cd2dd29981ac69f62b41c8c8fba2edcece07d149', 
   '6b651e89317292857ac1a729eff34b45', 
-  'Préposé aux clients d''affaire'
+  'Préposé aux clients d''affaires'
 );
