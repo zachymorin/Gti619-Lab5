@@ -39,20 +39,22 @@ export const login = async (req, res) => {
 			activeSessions.set(sessionId, {
 				id: user.id,
 				username: user.username,
-				role: user.role,
+				roleId: user.roleId,
 			});
 
 			res.cookie("sessionId", sessionId, {
-				httpOnly: true, // Empêche l'accès avec document.cookie
+				httpOnly: true,
 				secure: false,
-				sameSite: "strict",
+				sameSite: "lax",
 			});
 
 			db.run("INSERT INTO security_logs (event) VALUES (?)", [
 				`Connexion réussie pour l'utilisateur : ${username}`,
 			]);
 
-			return res.json({ username: user.username, role: user.role });
+			console.log("User successfully logged in")
+
+			return res.json({ username: user.username, roleId: user.roleId });
 		} else {
 			const newAttempts = user.failed_attempts + 1;
 

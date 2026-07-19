@@ -6,6 +6,7 @@ export const searchResidentialClients = async (query) => {
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 	});
 
 	if (!response.ok) {
@@ -20,6 +21,7 @@ export const searchBusinessClients = async (query) => {
 	const response = await fetch(`${API_URL}/business?search=${encodeURIComponent(query)}`, {
 		method: "GET",
 		headers: { "Content-Type": "application/json" },
+		credentials: "include",
 	});
 
 	if (!response.ok) {

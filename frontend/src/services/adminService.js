@@ -6,6 +6,7 @@ export const fetchAllUsers = async () => {
 		headers: {
 			"Content-Type": "application/json",
 		},
+		credentials: "include",
 	});
 
 	if (!response.ok) {
@@ -16,13 +17,14 @@ export const fetchAllUsers = async () => {
 	return response.json();
 };
 
-export const createUser = async (username, password, role) => {
+export const createUser = async (username, password, roleId) => {
 	const response = await fetch(`${API_URL}/users`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
-		body: JSON.stringify({ username, password, role }),
+		credentials: "include",
+		body: JSON.stringify({ username, password, roleId }),
 	});
 
 	if (!response.ok) {
@@ -37,6 +39,7 @@ export const fetchSecurityConfig = async () => {
 	const response = await fetch(`${API_URL}/security-config`, {
 		method: "GET",
 		headers: { "Content-Type": "application/json" },
+		credentials: "include",
 	});
 	if (!response.ok) throw new Error("Impossible de charger la configuration de sécurité.");
 	return response.json();
@@ -47,6 +50,7 @@ export const updateSecurityConfig = async (config) => {
 		method: "PUT",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(config),
+		credentials: "include",
 	});
 	if (!response.ok) throw new Error("Impossible de sauvegarder la configuration.");
 	return response.json();

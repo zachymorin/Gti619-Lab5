@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     salt TEXT NOT NULL,
-    role TEXT NOT NULL, -- 'Administrateur', 'Préposé aux clients résidentiels', 'Préposé aux clients d\'affaire'
+    roleId INTEGER, -- 'Administrateur', 'Préposé aux clients résidentiels', 'Préposé aux clients d\'affaire'
     failed_attempts INTEGER DEFAULT 0,
     is_locked INTEGER DEFAULT 0
 );

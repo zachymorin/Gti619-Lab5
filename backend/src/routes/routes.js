@@ -13,16 +13,16 @@ router.post("/auth/change-password", sessionAuth, changePassword);
 router.get(
 	"/clients/residential",
 	sessionAuth,
-	requireRole(["Administrateur", "Préposé aux clients résidentiels"]),
+	requireRole([1, 2]),
 	getResidentialClients,
 );
 router.get(
 	"/clients/business",
 	sessionAuth,
-	requireRole(["Administrateur", "Préposé aux clients d'affaire"]),
+	requireRole([1, 3]),
 	getBusinessClients,
 );
 
-router.get("/admin/config", sessionAuth, requireRole(["Administrateur"]), getSecurityConfig);
-router.post("/admin/config", sessionAuth, requireRole(["Administrateur"]), updateSecurityConfig);
-router.post("/admin/users", sessionAuth, requireRole(["Administrateur"]), createUser);
+router.get("/admin/config", sessionAuth, requireRole([1]), getSecurityConfig);
+router.post("/admin/config", sessionAuth, requireRole([1]), updateSecurityConfig);
+router.post("/admin/users", sessionAuth, requireRole([1]), createUser);

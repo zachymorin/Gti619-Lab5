@@ -17,19 +17,19 @@ function Navigation({ user, onLogout, setView }) {
 					Accueil
 				</button>
 
-				{user && user.role === "Administrateur" && (
+				{user && user.roleId === 1 && (
 					<button onClick={() => setView("admin-panel")} style={buttonStyle}>
 						Panneau Admin
 					</button>
 				)}
 
-				{user && user.role === "Préposé aux clients résidentiels" && (
+				{user && user.roleId === 2 && (
 					<button onClick={() => setView("residential-clients")} style={buttonStyle}>
 						Comptes Résidentiels
 					</button>
 				)}
 
-				{user && user.role === "Préposé aux clients d'affaires" && (
+				{user && user.roleId === 3 && (
 					<button onClick={() => setView("business-clients")} style={buttonStyle}>
 						Comptes Affaires
 					</button>

@@ -40,7 +40,7 @@ function LoginForm({ setUser, setView }) {
 						value={username}
 						onChange={(e) => setUsername(e.target.value)}
 						style={{
-							width: "100%",
+							width: "95%",
 							padding: "8px",
 							marginTop: "5px",
 						}}
@@ -56,7 +56,7 @@ function LoginForm({ setUser, setView }) {
 						value={password}
 						onChange={(e) => setPassword(e.target.value)}
 						style={{
-							width: "100%",
+							width: "95%",
 							padding: "8px",
 							marginTop: "5px",
 						}}

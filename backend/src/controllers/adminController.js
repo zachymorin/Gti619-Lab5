@@ -52,14 +52,14 @@ export const updateSecurityConfig = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-	const { username, password, passwordConfirm, role } = req.body;
+	const { username, password, passwordConfirm, roleId } = req.body;
 
 	if (password !== passwordConfirm) {
 		return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
 	}
 
-	const validRoles = ["Administrateur", "Préposé aux clients résidentiels", "Préposé aux clients d'affaires"];
-	if (!validRoles.includes(role)) {
+	const validRoles = [1, 2, 3];
+	if (!validRoles.includes(roleId)) {
 		return res.status(400).json({ error: "Le rôle spécifié est invalide." });
 	}
 
@@ -94,11 +94,11 @@ export const createUser = async (req, res) => {
 			const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
 
 			const insertQuery = `
-                        INSERT INTO users (username, password_hash, salt, role, failed_attempts, is_locked) 
+                        INSERT INTO users (username, password_hash, salt, roleId, failed_attempts, is_locked) 
                         VALUES (?, ?, ?, ?, 0, 0)
                     `;
 
-			db.run(insertQuery, [username, hash, salt, role], function (err) {
+			db.run(insertQuery, [username, hash, salt, roleId], function (err) {
 				if (err) {
 					return res.status(500).json({
 						error: "Erreur lors de la création de l'utilisateur.",
@@ -106,7 +106,7 @@ export const createUser = async (req, res) => {
 				}
 
 				db.run("INSERT INTO security_logs (event) VALUES (?)", [
-					`Nouvel utilisateur créé par l'admin : ${username} (${role})`,
+					`Nouvel utilisateur créé par l'admin : ${username} (${roleId})`,
 				]);
 
 				return res.status(201).json({
