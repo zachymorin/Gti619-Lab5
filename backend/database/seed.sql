@@ -9,27 +9,27 @@ INSERT OR IGNORE INTO clients (id, name, type) VALUES
 (3, 'Entreprises Montréal inc.', 'affaire'),
 (4, 'Technologies ÉTS', 'affaire');
 
--- Note : Ces mots de passe correspondent à "Admin123!", "Res1234!", "Bus1234!"
+-- Note : Ces mots de passe correspondent à "admin1", "user1", "user2"
 -- hachés avec le sel indiqué ci-dessous (PBKDF2-SHA512, 100000 itérations).
 INSERT OR IGNORE INTO users (id, username, password_hash, salt, role) VALUES 
 (
   1, 
-  'Administrateur', 
-  '7fa8fa782b5fa489db7ff910cbfbdfb5df498ec561cdcd4f6d0f5e7146e2a220551065bd5c8f8d697843d1a89c62985fd250877bd36f56860d5b6e2d9370fa99', 
-  '8ab4f877d9c104e1e828d1544a0eef9f', 
+  'Admin', 
+  '52c2411b51a1847eacd079dc756a4796b98863f4adba199655430c63f9816013c46a9843d54b797d6400f488f976fc9db14e3bebb77a550699fa1f4017a07c36', 
+  '9b5c9c0bfa86addb5f8db782f89e46ec', 
   'Administrateur'
 ),
 (
   2, 
-  'Utilisateur1', 
-  '2f3cd2b083b46944b20fc6de4279782bcf2b260fa1f92e34274c5d8ba15f9ff22880c10bcf2e26fd8457c3e1dbf37b9eeffcd623de4b9a0de248b11fbcd9208f', 
-  '9ecbf20a3219ee94ab92d4ef0a320391', 
+  'User1', 
+  '7a6f9a3d51d0fcef66d336591622433c05fda8a1b07b6fa22be660608876079f7a0cf9136a20cd558813bed4cba096d13f5482c4a54498a82120afe2f0e3bb56', 
+  'c494b03a9b25bf47552f0690a58c0b15', 
   'Préposé aux clients résidentiels'
 ),
 (
   3, 
-  'Utilisateur2', 
-  '120c8debf7d4bfa58a43f9cd781efbc95837ff290fcb34cd0f9a2b8ef902b9cdffce640b92ee3cde91ea3bfe7df219ffecdf908de802b9abdec0e51eecc39aef', 
-  '1cb9e90a5528aa0de34bb883bbf590a3', 
+  'User2', 
+  'c6c0768fd25d0398bb20fdabbb7684cf425a9ae98fbd8cef8a9057554c69cd74b1c0d8c6992b8689a0960f84cd2dd29981ac69f62b41c8c8fba2edcece07d149', 
+  '6b651e89317292857ac1a729eff34b45', 
   'Préposé aux clients d''affaire'
 );

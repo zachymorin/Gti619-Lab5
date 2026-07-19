@@ -1,0 +1,19 @@
+useTabs: true
+tabWidth: 4
+semi: true
+printWidth: 120
+arrowParens: "always"
+endOfLine: "auto"
+proseWrap: "preserve"
+bracketSameLine: true
+bracketSpacing: true
+vueIndentScriptAndStyle: true
+
+overrides:
+  - files:
+      - "*.yml"
+      - "*.yaml"
+      - "package*.json"
+    options:
+      useTabs: false
+      tabWidth: 2
