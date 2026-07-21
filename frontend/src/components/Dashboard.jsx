@@ -12,6 +12,7 @@ function Dashboard({ user }) {
 
     const [newUsername, setNewUsername] = useState('')
     const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [newRoleId, setNewRoleId] = useState(2)
 
 	const [securityConfig, setSecurityConfig] = useState({
@@ -44,7 +45,16 @@ function Dashboard({ user }) {
                     setLoading(true)
                     setError(null)
                     const data = await fetchSecurityConfig()
-                    setSecurityConfig(data)
+                    console.log(data)
+                    if (Array.isArray(data)) {
+                        const configObject = data.reduce((acc, item) => {
+                            acc[item.key] = item.value;
+                            return acc;
+                        }, {});
+                        setSecurityConfig(configObject);
+                    } else {
+                        setSecurityConfig(data);
+                    }
                 } catch (err) {
                     setError(err.message)
                 } finally {
@@ -89,14 +99,23 @@ function Dashboard({ user }) {
 
     const handleCreateUser = async (e) => {
         e.preventDefault()
+
+        setError(null)
+
+        if (newPassword !== confirmPassword) {
+            setError("Les mots de passe ne correspondent pas.")
+            return
+        }
+
         try {
             setLoading(true)
             setError(null)
-            const createdUser = await createUser(newUsername, newPassword, newRoleId)
+            const createdUser = await createUser(newUsername, newPassword, confirmPassword, newRoleId)
             alert(`L'utilisateur ${newUsername} a été créé avec succès !`)
             setUsers((prevUsers) => [...prevUsers, createdUser])
             setNewUsername('')
             setNewPassword('')
+            setConfirmPassword('')
             setNewRoleId(2)
         } catch (err) {
             setError(err.message)
@@ -110,7 +129,13 @@ function Dashboard({ user }) {
         try {
             setLoading(true)
             setError(null)
-            await updateSecurityConfig(securityConfig)
+
+            const payload = Object.keys(securityConfig).map((key) => ({
+                key: key,
+                value: securityConfig[key],
+            }))
+
+            await updateSecurityConfig(payload)
             alert('Politiques de sécurité mises à jour avec succès ! 🛡️')
         } catch (err) {
             setError(err.message)
@@ -173,6 +198,8 @@ function Dashboard({ user }) {
                                 </button>
                                 <h3>Créer un Nouvel Utilisateur</h3>
 
+                                {error && <p style={{ color: '#dc3545', fontWeight: 'bold' }}>Erreur : {error}</p>}
+
                                 <form onSubmit={handleCreateUser} style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '15px' }}>
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '5px' }}>Nom d&apos;utilisateur :</label>
@@ -182,6 +209,18 @@ function Dashboard({ user }) {
                                         <label style={{ display: 'block', marginBottom: '5px' }}>Mot de passe :</label>
                                         <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={inputStyle} required />
                                     </div>
+
+                                    <div>
+                                        <label style={{ display: 'block', marginBottom: '5px' }}>Confirmer le mot de passe :</label>
+                                        <input 
+                                            type="password" 
+                                            value={confirmPassword} 
+                                            onChange={(e) => setConfirmPassword(e.target.value)} 
+                                            style={inputStyle} 
+                                            required 
+                                        />
+                                    </div>
+
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '5px' }}>Rôle système :</label>
                                         <select value={newRoleId} onChange={(e) => setNewRoleId(parseInt(e.target.value))} style={inputStyle}>
@@ -190,7 +229,9 @@ function Dashboard({ user }) {
                                             <option value={1}>Administrateur</option>
                                         </select>
                                     </div>
-                                    <button type="submit" style={actionButtonStyle}>Créer le compte</button>
+                                    <button type="submit" style={actionButtonStyle} disabled={loading}>
+                                        {loading ? 'Création...' : 'Créer le compte'}
+                                    </button>
                                 </form>
                             </div>
                         )

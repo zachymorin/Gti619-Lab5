@@ -17,14 +17,14 @@ export const fetchAllUsers = async () => {
 	return response.json();
 };
 
-export const createUser = async (username, password, roleId) => {
+export const createUser = async (username, password, passwordConfirm, roleId) => {
 	const response = await fetch(`${API_URL}/users`, {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 		},
 		credentials: "include",
-		body: JSON.stringify({ username, password, roleId }),
+		body: JSON.stringify({ username, password, passwordConfirm, roleId }),
 	});
 
 	if (!response.ok) {
@@ -36,7 +36,7 @@ export const createUser = async (username, password, roleId) => {
 };
 
 export const fetchSecurityConfig = async () => {
-	const response = await fetch(`${API_URL}/security-config`, {
+	const response = await fetch(`${API_URL}/config`, {
 		method: "GET",
 		headers: { "Content-Type": "application/json" },
 		credentials: "include",
@@ -46,8 +46,8 @@ export const fetchSecurityConfig = async () => {
 };
 
 export const updateSecurityConfig = async (config) => {
-	const response = await fetch(`${API_URL}/security-config`, {
-		method: "PUT",
+	const response = await fetch(`${API_URL}/config`, {
+		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(config),
 		credentials: "include",
