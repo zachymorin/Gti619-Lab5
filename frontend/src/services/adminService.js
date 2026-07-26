@@ -18,19 +18,19 @@ export const loginUser = async (username, password) => {
     return response.json();
 };
 
-export const createUser = async (username, password, passwordConfirm, roleId) => {
-	const response = await fetch(`${API_URL}/users`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		credentials: "include",
-		body: JSON.stringify({ username, password, passwordConfirm, roleId }),
-	});
+export const createUser = async (username, password, confirmPassword, roleId) => {
+    const response = await fetch(`${API_URL}/admin/users`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ username, password, confirmPassword, roleId }),
+        credentials: "include",
+    });
 
     if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Impossible de récupérer la liste des utilisateurs.");
+        throw new Error(errorData.error || "Erreur lors de la création de l'utilisateur.");
     }
 
     return response.json();
@@ -75,20 +75,3 @@ export const updateSecurityConfig = async (config) => {
 	return response.json();
 };
 
-export const createUser = async (username, password, confirmPassword, roleId) => {
-    const response = await fetch(`${API_URL}/admin/users`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password, confirmPassword, roleId }),
-        credentials: "include",
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Erreur lors de la création de l'utilisateur.");
-    }
-
-    return response.json();
-};
