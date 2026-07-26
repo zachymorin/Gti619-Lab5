@@ -16,10 +16,10 @@ function Dashboard({ user }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const [newUsername, setNewUsername] = useState('')
-    const [newPassword, setNewPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [newRoleId, setNewRoleId] = useState(2)
+    const [newUsername, setNewUsername] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [newRoleId, setNewRoleId] = useState(2);
 
     const [securityConfig, setSecurityConfig] = useState({
         max_attempts: "3",
@@ -69,10 +69,9 @@ function Dashboard({ user }) {
         if (user.roleId === 1 && currentSubView === 'security-config') {
             const loadConfig = async () => {
                 try {
-                    setLoading(true)
-                    setError(null)
-                    const data = await fetchSecurityConfig()
-                    console.log(data)
+                    setLoading(true);
+                    setError(null);
+                    const data = await fetchSecurityConfig();
                     if (Array.isArray(data)) {
                         const configObject = data.reduce((acc, item) => {
                             acc[item.key] = item.value;
@@ -127,29 +126,12 @@ function Dashboard({ user }) {
     }, [currentSubView, user.roleId]);
 
     const handleCreateUser = async (e) => {
-        e.preventDefault()
-
-        setError(null)
+        e.preventDefault();
+        setError(null);
 
         if (newPassword !== confirmPassword) {
-            setError("Les mots de passe ne correspondent pas.")
-            return
-        }
-
-        try {
-            setLoading(true)
-            setError(null)
-            const createdUser = await createUser(newUsername, newPassword, confirmPassword, newRoleId)
-            alert(`L'utilisateur ${newUsername} a été créé avec succès !`)
-            setUsers((prevUsers) => [...prevUsers, createdUser])
-            setNewUsername('')
-            setNewPassword('')
-            setConfirmPassword('')
-            setNewRoleId(2)
-        } catch (err) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
+            setError("Les mots de passe ne correspondent pas.");
+            return;
         }
 
         try {
@@ -188,16 +170,16 @@ function Dashboard({ user }) {
     const handleSaveSecurityConfig = async (e) => {
         e.preventDefault();
         try {
-            setLoading(true)
-            setError(null)
+            setLoading(true);
+            setError(null);
 
             const payload = Object.keys(securityConfig).map((key) => ({
                 key: key,
                 value: securityConfig[key],
-            }))
+            }));
 
-            await updateSecurityConfig(payload)
-            alert('Politiques de sécurité mises à jour avec succès ! 🛡️')
+            await updateSecurityConfig(payload);
+            alert('Politiques de sécurité mises à jour avec succès ! 🛡️');
         } catch (err) {
             setError(err.message);
         } finally {
@@ -326,18 +308,6 @@ function Dashboard({ user }) {
                                         <label style={{ display: 'block', marginBottom: '5px' }}>Mot de passe :</label>
                                         <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} style={inputStyle} required />
                                     </div>
-
-                                    <div>
-                                        <label style={{ display: 'block', marginBottom: '5px' }}>Confirmer le mot de passe :</label>
-                                        <input 
-                                            type="password" 
-                                            value={confirmPassword} 
-                                            onChange={(e) => setConfirmPassword(e.target.value)} 
-                                            style={inputStyle} 
-                                            required 
-                                        />
-                                    </div>
-
                                     <div>
                                         <label style={{ display: 'block', marginBottom: '5px' }}>Confirmer le mot de passe :</label>
                                         <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} style={inputStyle} required />
