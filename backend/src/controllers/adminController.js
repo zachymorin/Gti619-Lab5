@@ -120,3 +120,90 @@ export const createUser = async (req, res) => {
 		});
 	});
 };
+
+/**
+ * Récupère la liste de tous les utilisateurs (id, username, roleId, is_locked, failed_attempts)
+ */
+export const getAllUsers = async (req, res) => {
+	const query = "SELECT id, username, roleId, is_locked, failed_attempts FROM users";
+
+	db.all(query, [], (err, rows) => {
+		if (err) {
+			return res.status(500).json({
+				error: "Erreur lors de la récupération des utilisateurs.",
+			});
+		}
+		return res.json(rows);
+	});
+};
+
+/**
+ * Réinitialise le mot de passe d'un utilisateur par l'administrateur
+ * et déverrouille le compte si nécessaire.
+ */
+export const resetUserPassword = async (req, res) => {
+	const { id } = req.params;
+	const { newPassword } = req.body;
+
+	if (!newPassword) {
+		return res.status(400).json({
+			error: "Le nouveau mot de passe est requis.",
+		});
+	}
+
+	db.get("SELECT value FROM security_config WHERE key = 'min_length'", (err, config) => {
+		if (err) {
+			return res.status(500).json({
+				error: "Erreur lors de la vérification des politiques de sécurité.",
+			});
+		}
+
+		const minLength = config ? parseInt(config.value) : 8;
+		if (newPassword.length < minLength) {
+			return res.status(400).json({
+				error: `Le mot de passe doit contenir au moins ${minLength} caractères.`,
+			});
+		}
+
+		db.get("SELECT * FROM users WHERE id = ?", [id], (err, user) => {
+			if (err) {
+				return res.status(500).json({ error: "Erreur interne du serveur." });
+			}
+			if (!user) {
+				return res.status(404).json({ error: "Utilisateur non trouvé." });
+			}
+
+			const salt = crypto.randomBytes(16).toString("hex");
+			const newHash = crypto.pbkdf2Sync(newPassword, salt, 100000, 64, "sha512").toString("hex");
+
+			db.serialize(() => {
+				db.run("INSERT INTO password_history (user_id, password_hash) VALUES (?, ?)", [
+					user.id,
+					user.password_hash,
+				]);
+
+				const updateQuery = `
+					UPDATE users 
+					SET password_hash = ?, salt = ?, failed_attempts = 0, is_locked = 0 
+					WHERE id = ?
+				`;
+
+				db.run(updateQuery, [newHash, salt, id], function (err) {
+					if (err) {
+						return res.status(500).json({
+							error: "Erreur lors de la réinitialisation du mot de passe.",
+						});
+					}
+
+					db.run("INSERT INTO security_logs (event) VALUES (?)", [
+						`Mot de passe réinitialisé par l'admin pour l'utilisateur : ${user.username}`,
+					]);
+
+					return res.json({
+						message: `Le mot de passe de l'utilisateur ${user.username} a été réinitialisé avec succès.`,
+					});
+				});
+			});
+		});
+	});
+};
