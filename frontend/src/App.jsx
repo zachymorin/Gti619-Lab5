@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import LoginForm from "./components/LoginForm";
-// import ForgotPassword from "./components/ForgotPassword";
-import Dashboard from "./components/Dashboard";
-import Navigation from "./components/Navigation";
+import LoginForm from "./pages/LoginForm";
+import Dashboard from "./pages/Dashboard";
+import Navigation from "./pages/Navigation";
 
 export default function App() {
     const [user, setUser] = useState(null);
