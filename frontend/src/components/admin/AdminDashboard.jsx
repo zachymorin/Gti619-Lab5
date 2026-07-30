@@ -25,6 +25,36 @@ function AdminDashboard() {
         password_history_limit: "3",
     });
 
+    const handleSecurityConfigSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            await updateSecurityConfig(securityConfig);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            await createUser(newUsername, newPassword, confirmPassword, newRoleId);
+            setNewUsername('');
+            setNewPassword('');
+            setConfirmPassword('');
+            setCurrentSubView('menu');
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         if (currentSubView === 'user-list') {
             fetchAllUsers().then(setUsers).catch(e => setError(e.message));
@@ -49,9 +79,9 @@ function AdminDashboard() {
         case 'user-list':
             return <UserManagement users={users} loading={loading} error={error} onBack={handleBack} onResetPassword={resetUserPassword} />;
         case 'create-user':
-            return <CreateUserForm newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword} newRoleId={newRoleId} setNewRoleId={setNewRoleId} onSubmit={createUser} loading={loading} error={error} onBack={handleBack} />;
+            return <CreateUserForm newUsername={newUsername} setNewUsername={setNewUsername} newPassword={newPassword} setNewPassword={setNewPassword} confirmPassword={confirmPassword} setConfirmPassword={setConfirmPassword} newRoleId={newRoleId} setNewRoleId={setNewRoleId} onSubmit={handleCreateUser} loading={loading} error={error} onBack={handleBack} />;
         case 'security-config':
-            return <SecurityConfigForm securityConfig={securityConfig} setSecurityConfig={setSecurityConfig} onSubmit={updateSecurityConfig} loading={loading} error={error} onBack={handleBack} />;
+            return <SecurityConfigForm securityConfig={securityConfig} setSecurityConfig={setSecurityConfig} onSubmit={handleSecurityConfigSubmit} loading={loading} error={error} onBack={handleBack} />;
         default:
             return <AdminMenu onNavigate={setCurrentSubView} />;
     }
