@@ -2,16 +2,14 @@ import crypto from "crypto";
 import { db } from "../db/db.js";
 
 export const getSecurityConfig = async (req, res) => {
-	const query = "SELECT * FROM security_config";
-
-	db.all(query, [], (err, rows) => {
-		if (err) {
-			return res.status(500).json({
-				error: "Erreur lors de la récupération des configurations.",
-			});
-		}
-		return res.json(rows);
-	});
+    try {
+        const rows = db.prepare("SELECT * FROM security_config").all();
+        return res.json(rows);
+    } catch (err) {
+        return res.status(500).json({
+            error: "Erreur lors de la récupération des configurations.",
+        });
+    }
 };
 
 export const updateSecurityConfig = async (req, res) => {
@@ -26,21 +24,19 @@ export const updateSecurityConfig = async (req, res) => {
         : Object.entries(newConfigs);
 
     try {
-        const updatePromises = entries.map(([key, value]) => {
-            return new Promise((resolve, reject) => {
-                const query = "UPDATE security_config SET value = ? WHERE key = ?";
-                db.run(query, [String(value), key], function (err) {
-                    if (err) return reject(err);
-                    resolve(this.changes);
-                });
-            });
+        const updateStmt = db.prepare("UPDATE security_config SET value = ? WHERE key = ?");
+        
+        const updateMany = db.transaction((items) => {
+            for (const [key, value] of items) {
+                updateStmt.run(String(value), key);
+            }
         });
 
-        await Promise.all(updatePromises);
+        updateMany(entries);
 
-        db.run("INSERT INTO security_logs (event) VALUES (?)", [
-            "Paramètres de sécurité mis à jour par l'Administrateur.",
-        ]);
+        db.prepare("INSERT INTO security_logs (event) VALUES (?)").run(
+            "Paramètres de sécurité mis à jour par l'Administrateur."
+        );
 
         return res.json({
             message: "Configurations de sécurité mises à jour avec succès.",
@@ -54,64 +50,52 @@ export const updateSecurityConfig = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-	const { username, password, passwordConfirm, roleId } = req.body;
-	if (password !== passwordConfirm) {
-		console.log(password +"-"+passwordConfirm)
-		return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
-	}
+    const { username, password, passwordConfirm, roleId } = req.body;
 
-	const validRoles = [1, 2, 3];
-	if (!validRoles.includes(roleId)) {
-		console.log("penis2")
-		return res.status(400).json({ error: "Le rôle spécifié est invalide." });
-	}
+    if (password !== passwordConfirm) {
+        return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
+    }
 
-	if (!username || !password) {
-		console.log("penis3")
-		return res.status(400).json({
-			error: "Le nom d'utilisateur et le mot de passe sont requis.",
-		});
-	}
+    const validRoles = [1, 2, 3];
+    if (!validRoles.includes(roleId)) {
+        return res.status(400).json({ error: "Le rôle spécifié est invalide." });
+    }
 
-	db.get("SELECT value FROM security_config WHERE key = 'min_length'", (err, config) => {
-		if (err)
-			return res.status(500).json({
-				error: "Erreur lors de la vérification des politiques de sécurité.",
-			});
+    if (!username || !password) {
+        return res.status(400).json({
+            error: "Le nom d'utilisateur et le mot de passe sont requis.",
+        });
+    }
 
-		const minLength = config ? parseInt(config.value) : 8;
-		if (password.length < minLength) {
-			return res.status(400).json({
-				error: `Le mot de passe doit contenir au moins ${minLength} caractères.`,
-			});
-		}
+    try {
+        const config = db.prepare("SELECT value FROM security_config WHERE key = 'min_length'").get();
+        const minLength = config ? parseInt(config.value) : 8;
 
-		db.get("SELECT id FROM users WHERE username = ?", [username], (err, existingUser) => {
-			if (err) return res.status(500).json({ error: "Erreur interne du serveur." });
-			if (existingUser) {
-				return res.status(400).json({
-					error: "Ce nom d'utilisateur est déjà utilisé.",
-				});
-			}
+        if (password.length < minLength) {
+            return res.status(400).json({
+                error: `Le mot de passe doit contenir au moins ${minLength} caractères.`,
+            });
+        }
 
-			const salt = crypto.randomBytes(16).toString("hex");
-			const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
+        const existingUser = db.prepare("SELECT id FROM users WHERE username = ?").get(username);
+        if (existingUser) {
+            return res.status(400).json({
+                error: "Ce nom d'utilisateur est déjà utilisé.",
+            });
+        }
 
-			const insertQuery = `
-                        INSERT INTO users (username, password_hash, salt, roleId, failed_attempts, is_locked) 
-                        VALUES (?, ?, ?, ?, 0, 0)
-                    `;
+        const salt = crypto.randomBytes(16).toString("hex");
+        const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, "sha512").toString("hex");
 
-			db.run(insertQuery, [username, hash, salt, roleId], function (err) {
-				if (err) {
-					return res.status(500).json({
-						error: "Erreur lors de la création de l'utilisateur.",
-					});
-				}
+        const insertQuery = `
+            INSERT INTO users (username, password_hash, salt, roleId, failed_attempts, is_locked) 
+            VALUES (?, ?, ?, ?, 0, 0)
+        `;
+        db.prepare(insertQuery).run(username, hash, salt, roleId);
 
-				db.run("INSERT INTO security_logs (event) VALUES (?)", [
-					`Nouvel utilisateur créé par l'admin : ${username} (${roleId})`,
-				]);
+        db.prepare("INSERT INTO security_logs (event) VALUES (?)").run(
+            `Nouvel utilisateur créé par l'admin : ${username} (${roleId})`
+        );
 
 				return res.status(201).json({
 					message: `L'utilisateur ${username} a été créé avec succès.`,

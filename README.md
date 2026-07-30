@@ -13,3 +13,9 @@ For the backend from the root:
 cd backend
 node server.js
 ```
+
+Dont forget to run
+
+```bash
+npm install
+```
