@@ -50,9 +50,9 @@ export const updateSecurityConfig = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-    const { username, password, passwordConfirm, roleId } = req.body;
+    const { username, password, confirmPassword, roleId } = req.body;
 
-    if (password !== passwordConfirm) {
+    if (password !== confirmPassword) {
         return res.status(400).json({ error: "Les mots de passe ne correspondent pas." });
     }
 
@@ -97,28 +97,31 @@ export const createUser = async (req, res) => {
             `Nouvel utilisateur créé par l'admin : ${username} (${roleId})`
         );
 
-				return res.status(201).json({
-					message: `L'utilisateur ${username} a été créé avec succès.`,
-				});
-			});
-		});
-	});
+        return res.status(201).json({
+            message: `L'utilisateur ${username} a été créé avec succès.`,
+        });
+    } catch (err) {
+        console.error("❌ Erreur createUser :", err.message);
+        return res.status(500).json({
+            error: "Erreur lors de la création de l'utilisateur.",
+        });
+    }
 };
 
 /**
  * Récupère la liste de tous les utilisateurs (id, username, roleId, is_locked, failed_attempts)
  */
 export const getAllUsers = async (req, res) => {
-	const query = "SELECT id, username, roleId, is_locked, failed_attempts FROM users";
-
-	db.all(query, [], (err, rows) => {
-		if (err) {
-			return res.status(500).json({
-				error: "Erreur lors de la récupération des utilisateurs.",
-			});
-		}
-		return res.json(rows);
-	});
+    try {
+        const query = "SELECT id, username, roleId, is_locked, failed_attempts FROM users";
+        const rows = db.prepare(query).all();
+        return res.json(rows);
+    } catch (err) {
+        console.error("❌ Erreur getAllUsers :", err.message);
+        return res.status(500).json({
+            error: "Erreur lors de la récupération des utilisateurs.",
+        });
+    }
 };
 
 /**
@@ -126,68 +129,60 @@ export const getAllUsers = async (req, res) => {
  * et déverrouille le compte si nécessaire.
  */
 export const resetUserPassword = async (req, res) => {
-	const { id } = req.params;
-	const { newPassword } = req.body;
+    const { id } = req.params;
+    const { newPassword } = req.body;
 
-	if (!newPassword) {
-		return res.status(400).json({
-			error: "Le nouveau mot de passe est requis.",
-		});
-	}
+    if (!newPassword) {
+        return res.status(400).json({
+            error: "Le nouveau mot de passe est requis.",
+        });
+    }
 
-	db.get("SELECT value FROM security_config WHERE key = 'min_length'", (err, config) => {
-		if (err) {
-			return res.status(500).json({
-				error: "Erreur lors de la vérification des politiques de sécurité.",
-			});
-		}
+    try {
+        const config = db.prepare("SELECT value FROM security_config WHERE key = 'min_length'").get();
+        const minLength = config ? parseInt(config.value) : 8;
 
-		const minLength = config ? parseInt(config.value) : 8;
-		if (newPassword.length < minLength) {
-			return res.status(400).json({
-				error: `Le mot de passe doit contenir au moins ${minLength} caractères.`,
-			});
-		}
+        if (newPassword.length < minLength) {
+            return res.status(400).json({
+                error: `Le mot de passe doit contenir au moins ${minLength} caractères.`,
+            });
+        }
 
-		db.get("SELECT * FROM users WHERE id = ?", [id], (err, user) => {
-			if (err) {
-				return res.status(500).json({ error: "Erreur interne du serveur." });
-			}
-			if (!user) {
-				return res.status(404).json({ error: "Utilisateur non trouvé." });
-			}
+        const user = db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+        if (!user) {
+            return res.status(404).json({ error: "Utilisateur non trouvé." });
+        }
 
-			const salt = crypto.randomBytes(16).toString("hex");
-			const newHash = crypto.pbkdf2Sync(newPassword, salt, 100000, 64, "sha512").toString("hex");
+        const salt = crypto.randomBytes(16).toString("hex");
+        const newHash = crypto.pbkdf2Sync(newPassword, salt, 100000, 64, "sha512").toString("hex");
 
-			db.serialize(() => {
-				db.run("INSERT INTO password_history (user_id, password_hash) VALUES (?, ?)", [
-					user.id,
-					user.password_hash,
-				]);
+        const performReset = db.transaction(() => {
+            db.prepare("INSERT INTO password_history (user_id, password_hash) VALUES (?, ?)").run(
+                user.id,
+                user.password_hash
+            );
 
-				const updateQuery = `
-					UPDATE users 
-					SET password_hash = ?, salt = ?, failed_attempts = 0, is_locked = 0 
-					WHERE id = ?
-				`;
+            const updateQuery = `
+                UPDATE users 
+                SET password_hash = ?, salt = ?, failed_attempts = 0, is_locked = 0 
+                WHERE id = ?
+            `;
+            db.prepare(updateQuery).run(newHash, salt, id);
 
-				db.run(updateQuery, [newHash, salt, id], function (err) {
-					if (err) {
-						return res.status(500).json({
-							error: "Erreur lors de la réinitialisation du mot de passe.",
-						});
-					}
+            db.prepare("INSERT INTO security_logs (event) VALUES (?)").run(
+                `Mot de passe réinitialisé par l'admin pour l'utilisateur : ${user.username}`
+            );
+        });
 
-					db.run("INSERT INTO security_logs (event) VALUES (?)", [
-						`Mot de passe réinitialisé par l'admin pour l'utilisateur : ${user.username}`,
-					]);
+        performReset();
 
-					return res.json({
-						message: `Le mot de passe de l'utilisateur ${user.username} a été réinitialisé avec succès.`,
-					});
-				});
-			});
-		});
-	});
+        return res.json({
+            message: `Le mot de passe de l'utilisateur ${user.username} a été réinitialisé avec succès.`,
+        });
+    } catch (err) {
+        console.error("❌ Erreur resetUserPassword :", err.message);
+        return res.status(500).json({
+            error: "Erreur lors de la réinitialisation du mot de passe.",
+        });
+    }
 };
