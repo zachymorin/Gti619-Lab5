@@ -1,5 +1,5 @@
 import express from "express";
-import { login, logout } from "../controllers/authController.js";
+import { login, logout, changePassword } from "../controllers/authController.js";
 import { getResidentialClients, getBusinessClients } from "../controllers/clientController.js";
 import { getSecurityConfig, updateSecurityConfig, createUser, getAllUsers, resetUserPassword } from "../controllers/adminController.js";
 import { sessionAuth, requireRole } from "../middlewares/authMiddleware.js";
@@ -8,6 +8,7 @@ export const router = express.Router();
 
 router.post("/auth/login", login);
 router.post("/auth/logout", logout);
+router.put("/auth/change-password", sessionAuth, changePassword);
 
 router.get(
 	"/clients/residential",

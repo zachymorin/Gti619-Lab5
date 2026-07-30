@@ -1,18 +1,23 @@
-"use client";
-
 import React, { useState } from "react";
 import LoginForm from "../components/LoginForm";
 import ForgotPassword from "../components/ForgotPassword";
 import Dashboard from "../components/Dashboard";
-import Navigation from "../components/Navigation";
+import Navigation from "../components/generic/Navigation";
+import { logoutUser } from "../services/authService";
 
 export default function Home() {
 	const [user, setUser] = useState(null);
 	const [view, setView] = useState("login");
 
-	const handleLogout = () => {
-		setUser(null);
-		setView("login");
+	const handleLogout = async () => {
+		try {
+			await logoutUser();
+		} catch (err) {
+			console.error("Erreur lors de la déconnexion :", err.message);
+		} finally {
+			setUser(null);
+			setView("login");
+		}
 	};
 
 	return (

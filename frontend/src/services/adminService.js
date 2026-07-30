@@ -40,7 +40,7 @@ export const fetchAllUsers = async () => {
 };
 
 /**
- * Réinitialise le mot de passe d'un utilisateur par l'administrateur
+ * Réinitialise le mot de passe d'un utilisateur
  */
 export const resetUserPassword = async (userId, newPassword) => {
     const response = await fetch(`${API_URL}/admin/users/${userId}/reset-password`, {
